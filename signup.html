@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Sign Up</title>
+<style>
+body{margin:0;font-family:Arial;background:#f1f5f9;display:flex;justify-content:center;align-items:center;height:100vh;}
+.container{background:white;padding:40px;border-radius:20px;box-shadow:0 5px 15px rgba(0,0,0,0.2);text-align:center;width:300px;}
+input{width:90%;height:40px;margin:10px 0;border-radius:10px;border:1px solid #ccc;padding:10px;}
+button{padding:10px 20px;border:none;border-radius:10px;background:#3b82f6;color:white;cursor:pointer;margin-top:10px;}
+button:hover{background:#2563eb;}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2>Create Account</h2>
+<input type="text" id="newUser" placeholder="Username"><br>
+<input type="password" id="newPass" placeholder="Password"><br>
+<button onclick="signUp()">Sign Up</button><br>
+<button onclick="window.location.href='login.html'" style="margin-top:10px;">Already have an account? Login</button>
+</div>
+
+<script>
+if(localStorage.getItem("loggedIn") === "true"){
+    window.location.href="diagnosis.html";
+}
+
+function signUp(){
+    let user=document.getElementById("newUser").value;
+    let pass=document.getElementById("newPass").value;
+    if(user===""||pass===""){alert("Fill all fields");return;}
+    localStorage.setItem("username",user);
+    localStorage.setItem("password",pass);
+    localStorage.setItem("loggedIn","true");
+    alert("Account created");
+    window.location.href="diagnosis.html";
+}
+</script>
+
+</body>
+</html>
+s

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Diagnosis</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+        }
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 220px;
+            height: 100%;
+            background: linear-gradient(180deg, #1e293b, #0f172a);
+            padding-top: 20px;
+        }
+        .sidebar h3 {
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .sidebar a {
+            display: block;
+            color: #cbd5e1;
+            padding: 12px 20px;
+            text-decoration: none;
+            margin-bottom: 5px;
+            border-radius: 5px;
+        }
+        .sidebar a:hover {
+            background: #3b82f6;
+            color: white;
+        }
+        .container {
+            margin-left:300px;
+            padding: 30px;
+            max-width: 600px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            margin-top: 50px;
+        }
+        input {
+            width: 90%;
+            height: 40px;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            margin-bottom: 15px;
+        }
+        button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 10px;
+            background: #3b82f6;
+            color: white;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        #result, #followUp {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h3>Health App</h3>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="diagnosis.html">Diagnosis</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </div>
+
+    <div class="container">
+        <h2 style="text-align:center; font-size:30px;">Health Expert System</h2>
+        <p style="text-align:center; font-size:18px;">Enter your symptoms<br>(One word answers and comma separated):</p>
+        <input type="text" id="symptoms" placeholder="e.g., fever, cough, headache" onkeydown="if(event.key==='Enter'){getDiagnosis()}">
+        <br>
+        <button onclick="getDiagnosis()">Get Diagnosis</button>
+        <button onclick="window.location.href='diagnosis.html'">Clear</button>
+        <div id="result"></div>
+        <div id="followUp"></div>
+    </div>
+
+    <footer>
+        <p>If you have severe symptoms, please consult a doctor immediately.</p>
+        <p>©2026 Health Expert System. All rights reserved.</p>
+    </footer>
+
+    <script>
+        if(localStorage.getItem("loggedIn") !== "true"){
+            window.location.href = "login.html";
+        }
+
+        function logout(){
+            localStorage.removeItem("loggedIn");
+            alert("Logged out");
+            window.location.href = "login.html";
+        }
+
+        function getDiagnosis(){
+            var symptoms = document.getElementById('symptoms').value.toLowerCase().trim();
+            if (symptoms === ""){
+                document.getElementById('result').innerHTML = "Please fill in your symptoms first.";
+                return;
+            }
+            var symptomsList = symptoms.split(",").map(s => s.trim());
+            var rules = [
+                {name:"Flu", symptoms:["fever","cough","headache"], question:"Do you feel very tired", followUp:{yes:"Flu is more likely. Rest and drink plenty of water.", no:"It could be a common cold. Rest and stay hydrated."}},
+                {name:"Allergy", symptoms:["sneezing","runny nose","itchy eyes"], question:"Do your symptoms get worse around dust, pollen, or pets?", followUp:{yes:"Allergy is very likely. Avoid triggers", no:"It could be a common cold"}},
+                {name:"Migrane", symptoms:["headache","nausea","sensitivity to light"], question:"Are you sensitive to light or sound?", followUp:{yes:"Migraine is likely. Rest in a dark, quiet room.", no:"It may be a tension headache"}},
+                {name:"Sinus infection", symptoms:["headache","facial pain","congestion"], question:"Do you feel pressure or pain around your cheeks, forehead, or eyes?", followUp:{yes:"Sinus infection is likely. Consider decongestants and rest.", no:"It may be a different type of headache"}},
+                {name:"Stomach Flu", symptoms:["nausea","vomiting","diarrhea"], question:"Did your symptoms start gradually over time?", followUp:{yes:"Stomach flu is likely. Stay hydrated and rest", no:"It could be food poisoning or a stomach bug"}},
+                {name:"Asthma", symptoms:["shortness of breath","wheezing","coughing"], question:"Do your symptoms get triggered by exercise, cold air, or dust?", followUp:{yes:"Asthma is likely. Use an inhaler and avoid triggers", no:"It may be another respiratory condition"}},
+                {name:"Pneumonia", symptoms:["fever","cough","shortness of breath"], question:"Do you have chest pain when breathing or coughing?", followUp:{yes:"Pneumonia is likely. Seek medical attention immediately", no:"It could be flu or another infection."}},
+                {name:"Covid-19", symptoms:["fever","runny nose","shortness of breath"], question:"Do you have loss of taste or smell?", followUp:{yes:"Covid-19 is highly likely. Get tested and self-isolate.", no:"Could still be covid or flu."}},
+                {name:"Food Poisoning", symptoms:["vomiting","diarrhea","fever"], question:"Did you eat something unusual recently?", followUp:{yes:"Food poisoning is likely. Stay hydrated and consult a doctor if severe.", no:"Could be a stomach virus. Stay hydrated and rest."}}
+            ];
+            var possible = [];
+            rules.forEach(function(rule){
+                var matches = rule.symptoms.filter(symp => symptomsList.includes(symp));
+                if(matches.length >= 2){
+                    possible.push(rule);
+                }
+            });
+            if(possible.length === 0){
+                document.getElementById('result').innerHTML="Not enough information, please enter at least two symptoms.";
+                document.getElementById('followUp').innerHTML="";
+            }
+            else if(possible.length === 1){
+                document.getElementById('result').innerHTML="Possible illness: "+possible[0].name;
+                showFollowUp(possible[0]);
+            }
+            else{
+                document.getElementById('result').innerHTML="Multiple possible illnesses. Answer the following question to narrow down.";
+                showFollowUp(possible[0]);
+            }
+        }
+
+        function showFollowUp(rule){
+            var followDiv=document.getElementById('followUp');
+            followDiv.innerHTML = `
+                <p>${rule.question}</p>
+                <button onclick="answerFollowUp('yes')">Yes</button>
+                <button onclick="answerFollowUp('no')">No</button>
+            `;
+            window.currentRule = rule;
+        }
+
+        function answerFollowUp(answer){
+            var result = document.getElementById("result");       
+            if(answer === "yes"){
+                result.innerHTML = window.currentRule.followUp.yes;
+            }else{
+                result.innerHTML = window.currentRule.followUp.no;  
+            }
+            document.getElementById("followUp").innerHTML = "";
+        }
+    </script>
+</body>
+</html>
